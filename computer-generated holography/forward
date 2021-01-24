@@ -1,0 +1,15 @@
+function [U]=forward(object,N,k,c,r,delta)
+Iout=zeros(N,N);
+I=zeros(N,N);
+G=zeros(N,N);
+for a=1:N
+    for b=1:N
+        G(a,b)=g(c(a)*delta,r(b)*delta,400,k);
+    end
+end
+ 
+FFT1=(fft2(object));
+FFD2=(fft2(G));
+FD=FFT1.*FFD2;
+U=fftshift(ifft2(FD))*delta^2;
+end
