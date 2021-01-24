@@ -1,0 +1,4 @@
+function g=g(x,y,z,k)
+r=(x.^2+y.^2+z.^2).^(1/2);
+g=(1-i*k*r)*z*exp(i*k*r)/(2*pi*r.^3);
+end
