@@ -1,0 +1,91 @@
+clear all;
+lambda=0.633;
+k=2*pi/lambda;
+pix=1;
+N=round(500/pix);
+if mod(N,2)
+    N=N;
+else
+    N=N+1;
+end
+delta=500/N; 
+radius=100;
+c=-N/2:N/2-1;
+r=-N/2:N/2-1;
+[C,R]=meshgrid(c,r);
+Dis=((R.^2+C.^2).^0.5)*delta;
+Lights=zeros(N,N);
+
+for a=1:N
+    for b=1:N
+        if Dis(a,b)<radius
+            Lights(a,b)=1;
+        end  
+    end
+end
+figure(1); imagesc(Lights);
+
+image0 = imread('scholar.jpg');
+%image0 = rgb2gray(image0);
+image0 = im2double(image0);
+image0 = imresize(image0,[N N]);
+[M,N,K] = size(image0);
+
+figure;
+subplot(2,2,1);
+imshow(image0);
+title('origin figure');
+
+PI = 3.14159;
+phase = 2i*PI*rand(M,N);
+image1 = Lights.*exp(phase);
+image2=forward(image1,N,k,c,r,delta);
+
+subplot(2,2,2);
+imshow(image1);
+title('random phase figure');
+
+RMSE=zeros(1,10);
+for t=1:1:10
+    imgabs=abs(image2)./(max(max(abs(image2))));
+    sum=0;
+    for i=1:N
+        for j=1:N
+            sum=sum+(image0(i,j,1)-imgabs(i,j))^2;
+        end
+    end
+    rmse = sqrt(sum/(M-1)/(N-1)); 
+    RMSE(t)=rmse;
+    if rmse <= 0.01
+        break
+    else
+        imgangle = angle(image2);
+        image3 = image0.*exp(1i*imgangle);
+        image4 =back(image3,N,k,c,r,delta);
+        phase=angle(image4);
+        image1=Lights.*exp(1i*phase);
+        image2=forward(image1,N,k,c,r,delta);        
+    end
+
+phase1 = angle(image1);                       
+image1 = Lights.*exp(1i*phase1);
+
+image2 = forward(image1,N,k,c,r,delta);                        
+imgabs = abs(image2)./(max(max(abs(image2))));
+
+phase1 = (phase1+PI)/(2*PI);
+imwrite(phase1,'phase.jpg')
+
+subplot(2,2,3);
+imshow(Lights.*phase);
+title('phase holography')
+
+subplot(2,2,4);
+imshow(imgabs);
+title('recover figure')
+end
+figure(4);plot(RMSE);
+title('RMSE');
+xlabel('times');
+ylabel('RMSE value');
+figure(5);imagesc(imgabs);
