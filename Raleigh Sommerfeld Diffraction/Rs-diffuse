@@ -1,0 +1,9 @@
+function [U]=Rs_Deffu(object,X,Y,z,k)
+r=(X.^2+Y.^2+z^2).^(1/2);
+r_daoshu=r.^(-1);
+G=(1i*k*r_daoshu.^2-r_daoshu.^3).*exp(1i*k*r)*z/(-2*pi);
+FFT1=(fft2(object));
+FFD2=(fft2(G));
+FD=FFT1.*FFD2;
+U=fftshift(ifft2(FD))*(X(1,2)-X(1,1))*(Y(2,1)-Y(1,1));
+end
