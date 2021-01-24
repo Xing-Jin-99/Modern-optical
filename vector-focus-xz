@@ -1,0 +1,117 @@
+%this is a program to stimulate the focus of all kinds of vector light 
+% with a NA=0.95 convex lens in XZ plane
+%% basic parameter definition. All parameters are in 
+% International System of Units 
+clear all;
+close all;
+clc;
+lambda = 632.8e-9; %laser wavelenth（m）
+c = 299792458; %light speed（m/s）
+k = 2*pi/lambda; %wave vector (m^-1)
+theta_max = asin(0.95);
+f = 100e-3; % focus length (m)
+N = 10; % mesh quantity
+
+%% create simulation area
+a = 2e-6 % side length of simulation area in xy plane (m)
+delta = a/N;
+x = linspace(-a/2,a/2,N);
+r = abs(x);
+phi = 0;
+syms theta;
+
+%% General column vector polarized light
+m = 2;
+g91 = cos((m-1)*phi)*(cos(theta)*(besselj(m,k*r*sin(theta))-besselj(m-2,k*r*sin(theta)))...
+    +(besselj(m,k*r*sin(theta))+besselj(m-2,k*r*sin(theta))));
+g92 = sin((m-1)*phi)*(besselj(m,k*r*sin(theta))+besselj(m-2,k*r*sin(theta)))...
+    +(besselj(m,k*r*sin(theta))-besselj(m-2,k*r*sin(theta)));
+g93 = -2i*cos((m-1)*phi)*sin(theta)*besselj(m-1,k*r*sin(theta));
+
+%create intensity matrix
+Ixz = zeros(N);
+A = -1i*pi*f/lambda;
+n=1;
+
+% calculate the intergration
+for z = linspace(-a/2,a/2,N)
+    f1 = sqrt(cos(theta))*exp(1i*k*z*cos(theta))*sin(theta)*g91;
+    f2 = sqrt(cos(theta))*exp(1i*k*z*cos(theta))*sin(theta)*g92;
+    f3 = sqrt(cos(theta))*exp(1i*k*z*cos(theta))*sin(theta)*g93;
+    E1 = A*int(f1,theta,0,theta_max);
+    E2 = A*int(f2,theta,0,theta_max);
+    E3 = A*int(f3,theta,0,theta_max);
+    Ixz(:,n) = abs(double(E1)).^2+abs(double(E2)).^2+abs(double(E3)).^2;
+    n = n+1;
+end
+
+figure(1);
+imagesc((-a/2:delta:a/2)*1e6,(-a/2:delta:a/2)*1e6,Ixz);
+colorbar;
+title('The light intensity distribution in XZ plane');
+xlabel('Z(um)','fontsize',16);
+ylabel('X(um)','fontsize',16);
+
+
+
+
+%% Change the g11，g12 and g13 function and we can get the Intensity 
+% distribution in xy plane of other kinds of polaried light
+
+%% Linear polarized light 
+%Linear polarized light 
+g11 = (cos(theta)*(besselj(0,k*r*sin(theta))-besselj(2,k*r*sin(theta)))+...
+    (besselj(0,k*r*sin(theta))+besselj(2,k*r*sin(theta))))*cos(phi);
+g12 = (cos(theta)*(-besselj(0,k*r*sin(theta))-besselj(2,k*r*sin(theta)))+...
+    (-besselj(0,k*r*sin(theta))+besselj(2,k*r*sin(theta))))*sin(phi);
+g13 = 2i*sin(theta)*besselj(1,k*r*sin(theta))*cos(phi);
+
+%% Angular polarized light
+g21 = 0
+g22 = 2i*besselj(1,k*r*sin(theta));
+g23 = 0;
+
+%% Radially polarized light
+g31 = 2i*besselj(1,k*r*sin(theta))*cos(theta);
+g32 = 0;
+g33 = 2*besselj(0,k*r*sin(theta))*sin(theta);
+
+%% Circularly polarized light
+g41 = cos(theta)*(besselj(0,k*r*sin(theta))-besselj(2,k*r*sin(theta)))+...
+    (besselj(2,k*r*sin(theta))+besselj(2,k*r*sin(theta)));
+g42 = cos(theta)*(besselj(0,k*r*sin(theta))+besselj(2,k*r*sin(theta)))+...
+    1i*(besselj(2,k*r*sin(theta))-besselj(2,k*r*sin(theta)));
+g43 = 2i*besselj(1,k*r*sin(theta))*sin(theta);
+
+%% Linear polarized light with vortex phase
+m = 2;
+g51 = cos(theta)*(exp(1i*phi)*(besselj(m,k*r*sin(theta))-besselj(m+2,k*r*sin(theta)))...
+    +exp(-1i*phi)*(besselj(m,k*r*sin(theta))-besselj(m-2,k*r*sin(theta))))...
+    +(exp(1i*phi)*(besselj(m,k*r*sin(theta))+besselj(m+2,k*r*sin(theta)))...
+    +exp(-1i*phi)*(besselj(m,k*r*sin(theta))+besselj(m-2,k*r*sin(theta))));
+g52 = -i*(cos(theta)*(exp(1i*phi)*(-besselj(m,k*r*sin(theta))-besselj(m+2,k*r*sin(theta)))...
+    +exp(-1i*phi)*(besselj(m,k*r*sin(theta))+besselj(m-2,k*r*sin(theta))))...
+    +(exp(1i*phi)*(-besselj(m,k*r*sin(theta))+besselj(m+2,k*r*sin(theta)))...
+    +exp(-1i*phi)*(besselj(m,k*r*sin(theta))-besselj(m-2,k*r*sin(theta)))));
+g53 = 2i*sin(theta)*(exp(1i*phi)*besselj(m+1,k*r*sin(theta))-exp(-1i*phi)*...
+    besselj(m-1,k*r*sin(theta)));
+
+%% Angular polarized light with vortex phase
+m = 2;
+g61 = -(besselj(m+1,k*r*sin(theta))+besselj(m-1,k*r*sin(theta)));
+g62 = 1i*(besselj(m+1,k*r*sin(theta))-besselj(m-1,k*r*sin(theta)));
+g63 = 0;
+
+%% Radially polarized light with vortex phase
+m = 2;
+g71 = 1i*cos(theta)*(besselj(m+1,k*r*sin(theta))-besselj(m-1,k*r*sin(theta)));
+g72 = cos(theta)*(besselj(m+1,k*r*sin(theta))+besselj(m-1,k*r*sin(theta)));
+g73 = 2*besselj(m,k*r*sin(theta);
+
+%% Circularly polarized light with vortex phase
+m = 2;
+g81 = cos(theta)*(besselj(m,k*r*sin(theta))-besselj(m+2,k*r*sin(theta)))+...
+    (besselj(m,k*r*sin(theta))+besselj(m+2,k*r*sin(theta)));
+g82 = 1i*(cos(theta)*(besselj(m,k*r*sin(theta))+besselj(m+2,k*r*sin(theta)))...
+    +(besselj(m,k*r*sin(theta))-besselj(m+2,k*r*sin(theta))));
+g83 = 2i*besselj(m+1,k*r*sin(theta));
