@@ -1,0 +1,49 @@
+clear all;
+lambda=0.633;
+k=2*pi/lambda;
+N=1024;
+delta=50/N; 
+radius=5; 
+c=-N/2:N/2-1;
+r=-N/2:N/2-1;
+[C,R]=meshgrid(c,r);
+Dis=((R.^2+C.^2).^0.5)*delta;
+Lights=zeros(N,N);
+
+for a=1:N 
+    for b=1:N
+        if Dis(a,b)<radius
+            Lights(a,b)=1;
+        end  
+    end
+end
+
+Z=zeros(N,1);
+for m=1:N
+    Z(m)=(0.1+(100-0.1)*(m-1)/N);
+end
+
+    
+Iout=zeros(N,N);
+
+for n=1:N
+    I=zeros(N,N);
+    G=zeros(N,N);
+    for a=1:N
+        for b=1:N
+            G(a,b)=g(c(a)*delta,r(b)*delta,Z(n),k);
+        end
+    end
+ 
+    FFT1=(fft2(Lights));
+    FFD2=(fft2(G));
+    FD=FFT1.*FFD2;
+    U=fftshift(ifft2(FD));
+    I=abs(U);
+
+    for j=1:N
+        Iout(j,n)=I(j,N/2);
+    end
+end
+
+imagesc(Iout);colorbar;
