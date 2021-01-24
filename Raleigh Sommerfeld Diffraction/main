@@ -1,0 +1,33 @@
+close all;
+clear;
+clc;
+
+lambda=0.633;
+k=2*pi/lambda;
+f=100;  
+
+fig=imread('object1.bmp')/255;
+figure(1);imagesc(fig);
+title('origin figure');colorbar;
+
+sizeof=size(fig);
+N=10*sizeof;
+object=zeros(N);
+object(N/2-sizeof/2+1:N/2+sizeof/2,N/2-sizeof/2+1:N/2+sizeof/2)=fig;
+figure(2);imagesc(object);title('object');colorbar;
+
+x = linspace(-210,210,N(1,1));
+y = linspace(-210,210,N(1,2));
+[X,Y]=meshgrid(x,y);
+
+image1=Rs_out(object,1,k,f,X,Y);
+figure(3);imagesc(abs(image1).^2);title('M=1');colorbar;
+savefig('image_of_M=1');
+
+image2=Rs_out(object,2,k,f,X,Y);
+figure(4);imagesc(abs(image2).^2);title('M=2');colorbar;
+savefig('image_of_M=2');
+
+image3=Rs_out(object,6,k,f,X,Y);
+figure(5);imagesc(abs(image3).^2);title('M=6');colorbar;
+savefig('image_of_M=6');
