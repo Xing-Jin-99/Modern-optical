@@ -1,0 +1,8 @@
+function [Rs3]=Rs_out(object,M,k,f,X,Y)
+u=(M+1)/M*f;
+v=(M+1)*f;
+func=exp(-i.*(X.^2+Y.^2)*k/2/f);
+Rs1=Rs_Deffu(object,X,Y,u,k);
+Rs2=Rs1.*func;
+Rs3=Rs_Deffu(Rs2,X,Y,v,k);
+end
